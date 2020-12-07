@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from django.db import transaction
 from django.conf import settings
+import tarfile
 
 from core.models import Account
 from identifiers.models import Identifier
@@ -9,12 +10,18 @@ from submission import models as submission_models
 from plugins.ingenta import parsers
 
 
-def import_journal():
-    pass
-
-
-def import_issue():
-    pass
+def import_from_archive(tar_path, journal, owner):
+    with tarfile.open(tar_path, "r:gz") as archive:
+        file_names = archive.getnames()
+        for name in file_names:
+            if name.endswith(".xml"):
+                xml= archive.extractfile(name)
+                prefix = name.split(".xml")[0]
+                pdf = None
+                pdf_name = prefix + ".pdf"
+                if pdf_name in file_names:
+                    pdf = archive.extractfile(pdf_name)
+                import_article(journal, xml, owner, pdf)
 
 
 def import_article(journal, xml_file, owner, article_pdf=None):
@@ -29,6 +36,7 @@ def import_article_xml(journal, xml_contents, owner):
     soup = BeautifulSoup(xml_contents, 'lxml')
     metadata = parsers.parse_article_metadata(soup)
     article = get_or_create_article(journal, metadata, owner)
+    return article
 
 
 def get_or_create_article(journal, metadata, owner):
