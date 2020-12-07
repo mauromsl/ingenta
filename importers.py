@@ -62,6 +62,7 @@ def get_or_create_article(journal, metadata, owner):
                 is_import=True,
                 owner=owner,
             )
+        import_article_authors(article, metadata)
 
         for id_type in {"doi", "ingenta_id", "sici"}:
             if metadata.get(id_type):
@@ -72,3 +73,22 @@ def get_or_create_article(journal, metadata, owner):
                 )
 
         return article
+
+
+def import_article_authors(article, metadata):
+    authors = metadata["authors"]
+    for author in authors:
+        account, _ = Account.objects.get_or_create(
+            email=author["email"],
+            defaults={
+                "first_name": author["first_name"],
+                "middle_name": author["middle_name"],
+                "last_name": author["last_name"],
+                # Ingenta only provides author names
+                "institution": article.journal.name,
+            }
+        )
+        article.authors.add(account)
+    article.snapshot_authors(article)
+
+

@@ -106,15 +106,13 @@ def get_ingenta_pub_date(soup):
 
 def get_ingenta_authors(soup):
     authors = []
-    for author in soup.find_all("contrib", {"contrib-type": "author"}):
+    for author in soup.find_all("contrib"):
         institution = None
-        if author.find("aff"):
-            institution = author.find("aff").text or ""
         if author.find("surname"):
             first_name = middle_name = None
             given_names = author.find("given-names")
             if given_names:
-                first_name, *middle_names = given_names.split(" ")
+                first_name, *middle_names = given_names.text.split(" ")
                 middle_name = " ".join(middle_names)
             author_data = {
                 "first_name": first_name,
