@@ -8,6 +8,12 @@ import hashlib
 from django.conf import settings
 
 
+IDENTIFIERS_MAP = {
+    "other": "ingenta_id",
+    "publisher-id": "pubid",
+}
+
+
 def parse_article_metadata(soup):
     """ Parses article metadata from an Ingenta export
     :param soup: An instance of bs4.BeautifulSoup
@@ -24,6 +30,11 @@ def parse_article_metadata(soup):
     meta["authors"] = []
     meta["date_submitted"] = None
     meta["date_accepted"] = None
+    ids = metadata_soup.find_all("article-id")
+    for i in ids:
+        id_attr = i.attrs.get("pub-id-type")
+        id_type = IDENTIFIERS_MAP.get(id_attr, id_attr)
+        meta[id_type] = i.text
 
     authors_soup = metadata_soup.find("contrib-group")
     if authors_soup:
