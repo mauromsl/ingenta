@@ -1,0 +1,20 @@
+{% extends "admin/core/base.html" %}
+
+{% block title %}Ingenta Plugin{% endblock %}
+{% block title-section %}Ingenta Plugin{% endblock %}
+{% block breadcrumbs %}
+    {{ block.super }}
+    <li><a href="{% url 'ingenta_index' %}">Ingenta Plugin</a></li>
+{% endblock %}
+
+{% block body %}
+
+    <div class="box">
+        <div class="title-area">
+            <h2>Ingenta Plugin</h2>
+        </div>
+        <div class="content">
+        </div>
+    </div>
+
+{% endblock %}
