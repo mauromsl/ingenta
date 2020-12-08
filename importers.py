@@ -6,6 +6,7 @@ import tarfile
 
 from core.models import Account
 from identifiers.models import Identifier
+from journal import models as journal_models
 from production.logic import replace_galley_file, save_galley
 from submission import models as submission_models
 from utils.logger import get_logger
@@ -59,6 +60,12 @@ def import_article_xml(journal, xml_contents, owner):
     soup = BeautifulSoup(xml_contents, 'lxml')
     metadata = parsers.parse_article_metadata(soup)
     article = get_or_create_article(journal, metadata, owner)
+
+    issue = get_or_create_issue(metadata, article.journal)
+    issue.articles.add(article)
+    article.primary_issue = issue
+    article.save()
+
     return article
 
 
@@ -93,17 +100,38 @@ def get_or_create_article(journal, metadata, owner):
                 is_import=True,
                 owner=owner,
             )
+            logger.debug("New Article: %s", article)
         import_article_authors(article, metadata)
 
         for id_type in {"doi", "ingenta_id", "sici"}:
             if metadata.get(id_type):
-                Identifier.objects.get_or_create(
+                ident, created = Identifier.objects.get_or_create(
                     id_type=id_type,
                     identifier=metadata[id_type],
                     article=article,
                 )
+                if created:
+                    logger.debug("New identifier: %s", ident)
 
+        logger.info("Imported article: %s", article)
+        article.section = section
+        article.save()
         return article
+
+
+def get_or_create_issue(metadata, journal):
+    issue_type = journal_models.IssueType.objects.get(
+        code="issue",
+        journal=journal,
+    )
+    issue, _ = journal_models.Issue.objects.get_or_create(
+        volume=metadata["volume"],
+        issue=metadata["issue"],
+        journal=journal,
+        defaults={"issue_type": issue_type}
+    )
+    logger.info("New Issue created: %s", issue)
+    return issue
 
 
 def import_article_authors(article, metadata):
