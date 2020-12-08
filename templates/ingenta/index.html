@@ -1,4 +1,5 @@
 {% extends "admin/core/base.html" %}
+{% load foundation %}
 
 {% block title %}Ingenta Plugin{% endblock %}
 {% block title-section %}Ingenta Plugin{% endblock %}
@@ -11,10 +12,37 @@
 
     <div class="box">
         <div class="title-area">
-            <h2>Ingenta Plugin</h2>
+            <h2>Articles imported</h2>
         </div>
         <div class="content">
+          <div class="row expanded">
+            <table class="small" id="article_table">
+              <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>ingenta_id</th>
+                    <th>Title</th>
+                    <th>Issue</th>
+                    <th>URL</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for ident in ingenta_ids %}
+                <tr>
+                    <td>{{ ident.article.pk }}</td>
+                    <td>{{ ident.identifier }}</td>
+                    <td>{{ ident.article.title }}</td>
+                    <td>Issue {{ ident.article.issue.issue }} - Volume {{ ident.article.issue.volume }}</td>
+                    <td><a target="blank" href="{{ ident.article.url }}">{{ ident.article.url }}</a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
     </div>
 
 {% endblock %}
+{% block js %}
+  {% include "elements/datatables.html" with target="#article_table" %}
+{% endblock js %}
