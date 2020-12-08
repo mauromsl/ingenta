@@ -63,7 +63,10 @@ def import_article_xml(journal, xml_contents, owner):
     metadata = parsers.parse_article_metadata(soup)
     article = get_or_create_article(journal, metadata, owner)
 
-    issue = get_or_create_issue(metadata, article.journal)
+    issue, created = get_or_create_issue(metadata, article.journal)
+    if created:
+        issue.date = article.date_published
+        issue.save()
     issue.articles.add(article)
     article.primary_issue = issue
     article.save()
@@ -127,14 +130,15 @@ def get_or_create_issue(metadata, journal):
         code="issue",
         journal=journal,
     )
-    issue, _ = journal_models.Issue.objects.get_or_create(
+    issue, created = journal_models.Issue.objects.get_or_create(
         volume=metadata["volume"],
         issue=metadata["issue"],
         journal=journal,
         defaults={"issue_type": issue_type}
     )
-    logger.info("New Issue created: %s", issue)
-    return issue
+    if created:
+        logger.info("New Issue created: %s", issue)
+    return issue, created
 
 
 def import_article_authors(article, metadata):
