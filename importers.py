@@ -23,11 +23,12 @@ class DummyRequest():
 
 
 def import_from_archive(tar_path, journal, owner):
+    logger.info("Ingenta import from archive: %s", tar_path)
     with tarfile.open(tar_path, "r:gz") as archive:
         file_names = archive.getnames()
         for name in file_names:
             if name.endswith(".xml"):
-                xml= archive.extractfile(name)
+                xml = archive.extractfile(name)
                 prefix = name.split(".xml")[0]
                 pdf = None
                 pdf_name = prefix + ".pdf"
@@ -39,6 +40,7 @@ def import_from_archive(tar_path, journal, owner):
 
 
 def import_article(journal, xml_file, owner, pdf=None):
+    logger.info("Ingenta import from XML: %s", xml_file.name)
     xml_contents = xml_file.read()
     article = import_article_xml(journal, xml_contents, owner)
     request = DummyRequest(owner)
@@ -46,10 +48,10 @@ def import_article(journal, xml_file, owner, pdf=None):
     if pdf and pdf.name not in article.pdfs.values_list(
         "file__original_filename", flat=True,
     ):
-        logger.info("Importing new PDF %s", pdf.name )
+        logger.info("Importing new PDF %s", pdf.name)
         save_galley(article, request, pdf, is_galley=True)
     elif pdf:
-        logger.info("Replacing PDF %s", pdf.name )
+        logger.info("Replacing PDF %s", pdf.name)
         galley = article.pdfs.get(file__original_filename=pdf.name)
         replace_galley_file(article, request, galley, pdf)
     else:
@@ -149,5 +151,3 @@ def import_article_authors(article, metadata):
         )
         article.authors.add(account)
     article.snapshot_authors(article)
-
-
