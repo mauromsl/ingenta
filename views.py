@@ -7,7 +7,6 @@ from django.http import Http404
 from identifiers import models as id_models
 
 
-
 @staff_member_required
 def index(request):
     """
@@ -30,4 +29,3 @@ def index(request):
     }
 
     return render(request, template, context)
-

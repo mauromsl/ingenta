@@ -28,6 +28,7 @@ def import_from_archive(tar_path, journal, owner):
         file_names = archive.getnames()
         for name in sorted(file_names):
             if name.endswith(".xml"):
+                logger.info("Extracting file %s", name)
                 xml = archive.extractfile(name)
                 prefix = name.split(".xml")[0]
                 pdf = None
@@ -43,6 +44,7 @@ def import_article(journal, xml_file, owner, pdf=None):
     logger.info("Ingenta import from XML: %s", xml_file.name)
     xml_contents = xml_file.read()
     article = import_article_xml(journal, xml_contents, owner)
+
     request = DummyRequest(owner)
 
     if pdf and pdf.name not in article.pdfs.values_list(
@@ -60,6 +62,10 @@ def import_article(journal, xml_file, owner, pdf=None):
 
 def import_article_xml(journal, xml_contents, owner):
     soup = BeautifulSoup(xml_contents, 'lxml')
+    if not soup.find("journal-title") or not soup.find("journal-title").text:
+        # MS: I found some empty SGML files that have no journal title
+        logger.warning("Empty XML detected")
+        return None
     metadata = parsers.parse_article_metadata(soup)
     article = get_or_create_article(journal, metadata, owner)
 
@@ -101,7 +107,7 @@ def get_or_create_article(journal, metadata, owner):
                 date_published=metadata["date_published"],
                 date_accepted=metadata["date_accepted"],
                 date_submitted=metadata["date_submitted"],
-                page_range=metadata["page_range"],
+                page_numbers=metadata["page_range"],
                 stage=submission_models.STAGE_PUBLISHED,
                 is_import=True,
                 owner=owner,
