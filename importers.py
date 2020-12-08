@@ -26,7 +26,7 @@ def import_from_archive(tar_path, journal, owner):
     logger.info("Ingenta import from archive: %s", tar_path)
     with tarfile.open(tar_path, "r:gz") as archive:
         file_names = archive.getnames()
-        for name in file_names:
+        for name in sorted(file_names):
             if name.endswith(".xml"):
                 xml = archive.extractfile(name)
                 prefix = name.split(".xml")[0]
