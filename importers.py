@@ -1,13 +1,24 @@
 from bs4 import BeautifulSoup
 from django.db import transaction
 from django.conf import settings
+from django.core.files.base import ContentFile
 import tarfile
 
 from core.models import Account
 from identifiers.models import Identifier
+from production.logic import replace_galley_file, save_galley
 from submission import models as submission_models
+from utils.logger import get_logger
 
 from plugins.ingenta import parsers
+
+logger = get_logger(__name__)
+
+
+class DummyRequest():
+    """ Used as to mimic request interface for `save_galley`"""
+    def __init__(self, user):
+        self.user = user
 
 
 def import_from_archive(tar_path, journal, owner):
@@ -20,16 +31,28 @@ def import_from_archive(tar_path, journal, owner):
                 pdf = None
                 pdf_name = prefix + ".pdf"
                 if pdf_name in file_names:
-                    pdf = archive.extractfile(pdf_name)
+                    pdf_blob = archive.extractfile(pdf_name).read()
+                    pdf = ContentFile(pdf_blob)
+                    pdf.name = pdf_name
                 import_article(journal, xml, owner, pdf)
 
 
-def import_article(journal, xml_file, owner, article_pdf=None):
-
+def import_article(journal, xml_file, owner, pdf=None):
     xml_contents = xml_file.read()
     article = import_article_xml(journal, xml_contents, owner)
-    if article_pdf and not article.pdfs:
-        pass  # TODO
+    request = DummyRequest(owner)
+
+    if pdf and pdf.name not in article.pdfs.values_list(
+        "file__original_filename", flat=True,
+    ):
+        logger.info("Importing new PDF %s", pdf.name )
+        save_galley(article, request, pdf, is_galley=True)
+    elif pdf:
+        logger.info("Replacing PDF %s", pdf.name )
+        galley = article.pdfs.get(file__original_filename=pdf.name)
+        replace_galley_file(article, request, galley, pdf)
+    else:
+        logger.info("No PDF provided")
 
 
 def import_article_xml(journal, xml_contents, owner):
