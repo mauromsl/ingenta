@@ -27,6 +27,7 @@ def parse_article_metadata(soup):
     meta["keywords"] = get_ingenta_keywords(metadata_soup)
     meta["section_name"] = get_ingenta_section(metadata_soup)
     meta["date_published"] = get_ingenta_pub_date(metadata_soup)
+    meta["page_range"] = get_ingenta_page_range(soup)
     meta["authors"] = []
     meta["date_submitted"] = None
     meta["date_accepted"] = None
@@ -124,6 +125,18 @@ def get_ingenta_authors(soup):
             }
             authors.append(author_data)
     return authors
+
+
+def get_ingenta_page_range(soup):
+    page_range = None
+    fpage = soup.find("fpage")
+    lpage = soup.find("lpage")
+    if fpage and lpage:
+        page_range = "{}-{}".format(fpage.text, lpage.text)
+    elif fpage:
+        page_range = fpage.text
+
+    return page_range
 
 
 def default_email(seed):

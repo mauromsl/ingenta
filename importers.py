@@ -98,6 +98,7 @@ def get_or_create_article(journal, metadata, owner):
                 date_published=metadata["date_published"],
                 date_accepted=metadata["date_accepted"],
                 date_submitted=metadata["date_submitted"],
+                page_range=metadata["page_range"],
                 stage=submission_models.STAGE_PUBLISHED,
                 is_import=True,
                 owner=owner,
