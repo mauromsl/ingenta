@@ -92,6 +92,15 @@ class TestImportArticle(TestCase):
         self.assertEqual(
             article.title, self.default_metadata["article_title"])
 
+    def test_article_update(self):
+        ingenta_id = "test_id"
+        metadata = dict(self.default_metadata, ingenta_id=ingenta_id)
+        xml = XML_TEMPLATE.format(**metadata)
+        article_1 = import_article_xml(self.journal_one, xml, owner=self.owner)
+        article_2 = import_article_xml(self.journal_one, xml, owner=self.owner)
+
+        self.assertEqual(article_1, article_2)
+
     def test_article_section_import(self):
         section_name = "test section"
         metadata = dict(self.default_metadata, section_name=section_name)

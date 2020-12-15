@@ -88,16 +88,14 @@ def get_or_create_article(journal, metadata, owner):
                 journal=journal,
                 name=metadata["section_name"],
         )
-        for id_type in {"doi", "ingenta_id", "sici"}:
-            if metadata.get(id_type):
-                try:
-                    ident = Identifier.objects.get(
-                        id_type=id_type, identifier=metadata[id_type])
-                except Identifier.DoesNotExist:
-                    continue
-                else:
-                    article = ident.article
-                    break
+        if metadata.get("ingenta_id"):
+            try:
+                ident = Identifier.objects.get(
+                    id_type="ingenta_id", identifier=metadata["ingenta_id"])
+            except Identifier.DoesNotExist:
+                pass
+            else:
+                article = ident.article
 
         if not article:
             article = submission_models.Article.objects.create(
