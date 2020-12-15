@@ -25,7 +25,7 @@ def parse_article_metadata(soup):
     meta["abstract"] = get_ingenta_abstract(metadata_soup)
     meta["issue"], meta["volume"] = get_ingenta_issue(metadata_soup)
     meta["keywords"] = get_ingenta_keywords(metadata_soup)
-    meta["section_name"] = get_ingenta_section(metadata_soup)
+    meta["section_name"] = get_ingenta_section(soup)
     meta["date_published"] = get_ingenta_pub_date(metadata_soup)
     meta["page_range"] = get_ingenta_page_range(soup)
     meta["authors"] = []
