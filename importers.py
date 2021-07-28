@@ -84,7 +84,7 @@ def get_or_create_article(journal, metadata, owner):
     with transaction.atomic():
         article = None
         section, _ = submission_models.Section.objects \
-            .language(settings.LANGUAGE_CODE).get_or_create(
+            .get_or_create(
                 journal=journal,
                 name=metadata["section_name"],
         )
