@@ -83,8 +83,7 @@ def import_article_xml(journal, xml_contents, owner):
 def get_or_create_article(journal, metadata, owner):
     with transaction.atomic():
         article = None
-        section, _ = submission_models.Section.objects \
-            .language(settings.LANGUAGE_CODE).get_or_create(
+        section, _ = submission_models.Section.objects.get_or_create(
                 journal=journal,
                 name=metadata["section_name"],
         )
