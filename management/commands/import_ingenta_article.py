@@ -6,6 +6,7 @@ from core.models import Account
 
 from plugins.ingenta.importers import import_article
 
+
 class Command(BaseCommand):
     """ Imports an article from an Ingenta XML metadata file"""
 
