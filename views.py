@@ -1,8 +1,5 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import Http404
 
 from identifiers import models as id_models
 
